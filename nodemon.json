@@ -1,0 +1,7 @@
+{
+    "env":{
+        "MONGO_USER": "read_write_any_database",
+        "MONGO_PASSWORD": "EqVCmWj5TVdFfUSi",
+        "MONGO_DB": "cluster0"
+    }
+}
