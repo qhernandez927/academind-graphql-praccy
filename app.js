@@ -4,8 +4,7 @@ const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 const mongoose = require('mongoose');
 const app = express();
-
-const events = [];
+const Event = require('./models/event');
 
 app.use(bodyParser.json());
 
@@ -43,18 +42,33 @@ app.use(
     `),
     rootValue: {
       events: () => {
-        return events;
+        return Event.find()
+          .then((events) => {
+            return events.map((event) => {
+              return { ...event._doc };
+            });
+          })
+          .catch((err) => {
+            throw err;
+          });
       },
       createEvent: (args) => {
-        const event = {
-          _id: Math.random().toString(),
+        const event = new Event({
           title: args.eventInput.title,
           description: args.eventInput.description,
           price: +args.eventInput.price,
-          date: args.eventInput.date,
-        };
-        events.push(event);
-        return event;
+          date: new Date(args.eventInput.date),
+        });
+        return event
+          .save()
+          .then((result) => {
+            console.log(result);
+            return { ...result._doc };
+          })
+          .catch((err) => {
+            console.log(err);
+            throw err;
+          });
       },
     },
     graphiql: true,
@@ -65,6 +79,7 @@ const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASSWOR
 mongoose
   .connect(uri, { useNewUrlParser: true })
   .then(() => {
+    app.listen(3000);
     console.log('handle success here');
   })
   .catch((e) => {
@@ -73,4 +88,3 @@ mongoose
 
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongodDB connection error:'));
-// client.connect(app.listen(3000));
